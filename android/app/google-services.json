@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "520270365524",
+    "firebase_url": "https://uber-a714b.firebaseio.com",
+    "project_id": "uber-a714b",
+    "storage_bucket": "uber-a714b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520270365524:android:d42f3b4eaee4b34a10bec1",
+        "android_client_info": {
+          "package_name": "com.weiner.uber"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "520270365524-2mjctvdh625svl2qf2k12hioudkfi2le.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl4w15hKebh2XvlcJuMJv0Eppiv8ikw-0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "520270365524-2mjctvdh625svl2qf2k12hioudkfi2le.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
