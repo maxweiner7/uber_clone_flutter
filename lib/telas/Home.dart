@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:uber/telas/Cadastro.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,11 +12,15 @@ class _HomeState extends State<Home> {
   TextEditingController _controllerEmail = TextEditingController();
   TextEditingController _controllerSenha = TextEditingController();
 
+  _abrirTelaCadastro() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => Cadastro()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
               image: DecorationImage(
             image: AssetImage("images/fundo.png"),
@@ -79,6 +84,7 @@ class _HomeState extends State<Home> {
                         style: TextStyle(color: Colors.white),
                       ),
                       onTap: () {
+                        _abrirTelaCadastro();
                         print("Clicado em cadastrar");
                       },
                     ),
@@ -86,10 +92,10 @@ class _HomeState extends State<Home> {
                   Padding(
                     padding: EdgeInsets.only(top: 16),
                     child: Center(
-                      child: Text("Erro",
-                      style: TextStyle(fontSize: 30,
-                        color: Colors.red
-                      ),),
+                      child: Text(
+                        "Erro",
+                        style: TextStyle(fontSize: 30, color: Colors.red),
+                      ),
                     ),
                   )
                 ],
