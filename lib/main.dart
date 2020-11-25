@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'Rotas.dart';
 import 'telas/Home.dart';
 
 final ThemeData temaPadrao = ThemeData(
@@ -19,6 +20,8 @@ class MyApp extends StatelessWidget {
       title: 'Uber',
       debugShowCheckedModeBanner: false,
       home: Home(),
+      initialRoute: "/",
+      onGenerateRoute: Rotas.gerarRotas,
       theme: temaPadrao,
     );
   }

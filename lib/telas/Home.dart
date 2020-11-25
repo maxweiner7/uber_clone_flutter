@@ -13,7 +13,7 @@ class _HomeState extends State<Home> {
   TextEditingController _controllerSenha = TextEditingController();
 
   _abrirTelaCadastro() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => Cadastro()));
+    Navigator.pushNamed(context, "/cadastro");
   }
 
   @override
