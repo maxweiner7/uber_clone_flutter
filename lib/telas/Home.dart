@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  TextEditingController _controllerEmail = TextEditingController(text: "max@gmail.com");
-  TextEditingController _controllerSenha = TextEditingController(text: "1234567");
+  TextEditingController _controllerEmail =
+      TextEditingController(text: "max@gmail.com");
+  TextEditingController _controllerSenha =
+      TextEditingController(text: "1234567");
   String _mensagemErro = "";
+  bool _carregando = false;
+  FirebaseAuth auth = FirebaseAuth.instance;
 
   _abrirTelaCadastro() {
     Navigator.pushNamed(context, "/cadastro");
@@ -31,8 +36,7 @@ class _HomeState extends State<Home> {
         usuario.email = email;
         usuario.senha = senha;
 
-        logarUsuario( usuario );
-
+        logarUsuario(usuario);
       } else {
         setState(() {
           _mensagemErro = "Preencha a senha! digite mais de 6 caracteres";
@@ -44,19 +48,57 @@ class _HomeState extends State<Home> {
       });
     }
   }
-  logarUsuario( Usuario usuario) {
 
-    FirebaseAuth auth = FirebaseAuth.instance;
-    auth.signInWithEmailAndPassword(
-        email: usuario.email,
-        password: usuario.senha)
-    .then((FirebaseUser) {
-      Navigator.pushReplacementNamed(context, "/painel-passageiro");
-    } ).catchError((error){
+  logarUsuario(Usuario usuario) {
+
+    setState(() {
+      _carregando = true;
+    });
+    auth
+        .signInWithEmailAndPassword(
+            email: usuario.email, password: usuario.senha)
+        .then((FirebaseUser) {
+      _redirecionaPainelPorTipoUsuario( FirebaseUser.user.uid );
+    }).catchError((error) {
       _mensagemErro = "Erro ao autenticar usuario, verifique e-mail e senha!";
+    });
+  }
 
+  _redirecionaPainelPorTipoUsuario(String idUsuario) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    DocumentSnapshot snapshot =
+        await db.collection("usuarios").doc(idUsuario).get();
+
+    Map<String, dynamic> dados = snapshot.data();
+    String tipoUsuario = dados["tipoUsuario"];
+
+    setState(() {
+      _carregando = false;
     });
 
+    switch ( tipoUsuario ) {
+      case "motorista" :
+        Navigator.pushReplacementNamed(context, "/painel-motorista");
+        break;
+      case "passageiro" :
+        Navigator.pushReplacementNamed(context, "/painel-passageiro");
+        break;
+    }
+  }
+  _verificaUsuarioLogado() async {
+
+    User usuarioLogado = await auth.currentUser;
+    if( usuarioLogado != null ) {
+      String idUsuario = usuarioLogado.uid;
+      _redirecionaPainelPorTipoUsuario( idUsuario );
+    }
+
+  }
+  @override
+  void initState() {
+    super.initState();
+    _verificaUsuarioLogado();
   }
 
   @override
@@ -132,6 +174,10 @@ class _HomeState extends State<Home> {
                       },
                     ),
                   ),
+                  Padding(padding: EdgeInsets.only(top: 16),
+                  child: _carregando ? Center(child: CircularProgressIndicator(
+                    backgroundColor: Colors.white ,),)
+                      : Container(),),
                   Padding(
                     padding: EdgeInsets.only(top: 16),
                     child: Center(
