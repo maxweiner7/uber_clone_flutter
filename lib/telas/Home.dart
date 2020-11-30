@@ -64,6 +64,7 @@ class _HomeState extends State<Home> {
     });
   }
 
+
   _redirecionaPainelPorTipoUsuario(String idUsuario) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
 
