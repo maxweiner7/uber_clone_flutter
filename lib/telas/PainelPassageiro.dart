@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:geocoding/geocoding.dart';
 import 'package:uber/model/Destino.dart';
+import 'package:uber/model/Requisicao.dart';
+import 'package:uber/model/Usuario.dart';
+import 'package:uber/util/StatusRequisicao.dart';
+import 'package:uber/util/UsuarioFirebase.dart';
 
 class PainelPassageiro extends StatefulWidget {
   @override
@@ -148,7 +153,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
                     ),
                     onPressed: () {
                       //salvar requisicao
-
+                      _salvarRequisicao(destino);
                       Navigator.pop(context);
                     },
                   ),
@@ -158,6 +163,24 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
       }
     }
   }
+  _salvarRequisicao (Destino destino) async{
+
+
+    Requisicao requisicao = Requisicao();
+
+    Usuario passageiro = await UsuarioFirebase.getDadosUsuarioLogado();
+
+    requisicao.destino = destino;
+    requisicao.passageiro = passageiro;
+    requisicao.status = StatusRequisicao.AGUARDANDO;
+
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    
+    db.collection("requisicoes")
+    .add( requisicao.toMap() );
+  }
+
 
   @override
   void initState() {
