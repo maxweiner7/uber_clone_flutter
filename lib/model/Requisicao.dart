@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'Destino.dart';
 import 'Usuario.dart';
 
@@ -9,7 +11,13 @@ class Requisicao {
   Usuario _motorista;
   Destino _destino;
 
-  Requisicao();
+  Requisicao() {
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentReference ref = db.collection("requisicoes").doc();
+    this.id = ref.id;
+
+  }
 
   Map<String, dynamic> toMap() {
 
@@ -30,6 +38,7 @@ class Requisicao {
     };
 
     Map<String, dynamic> dadosRequisicao = {
+      "id" : this.id,
       "status" : this.status,
       "passageiro" : dadosPassageiro,
       "motorista" : null,

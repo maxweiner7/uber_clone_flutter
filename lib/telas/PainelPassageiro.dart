@@ -22,10 +22,10 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   Completer<GoogleMapController> _controller = Completer();
   List<String> itemsMenu = ["Configurações", "Deslogar"];
   CameraPosition _posicaoCamera =
-      CameraPosition(target: LatLng(38.70363978979417, -9.400388462337878));
+  CameraPosition(target: LatLng(38.70363978979417, -9.400388462337878));
   Set<Marker> _marcadores = {};
   TextEditingController _controllerDestino =
-      TextEditingController(text: "Av. joao naves de avila, 1331");
+  TextEditingController(text: "Av. joao naves de avila, 1331");
 
   //Controles para exibição na tela
   bool _exibirCaixaEnderecoDestino = true;
@@ -56,7 +56,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
   _adicionaListenerLocalizacao() {
     var geolocator = Geolocator.getPositionStream(
-            desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
+        desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
         .listen((Position position) {
       //_exibirMarcadorPassageiro( position );
       _posicaoCamera = CameraPosition(
@@ -120,7 +120,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         destino.longetude = latLog.longitude;
 
         List<Placemark> enderecos =
-            await placemarkFromCoordinates(latLog.latitude, latLog.longitude);
+        await placemarkFromCoordinates(latLog.latitude, latLog.longitude);
         Placemark endereco = enderecos[0];
 
         destino.cidade = endereco.subAdministrativeArea;
@@ -181,10 +181,20 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
     FirebaseFirestore db = FirebaseFirestore.instance;
 
-    db.collection("requisicoes").add(requisicao.toMap());
+    db.collection("requisicoes").doc(requisicao.id)
+        .set(requisicao.toMap());
 
-    statusAguardando();
+    //salvar requisição ativa
+    Map<String, dynamic> dadosRequisicaoAtiva = {};
+    dadosRequisicaoAtiva["id_requisicao"] = requisicao.id;
+    dadosRequisicaoAtiva["id_usuario"] = passageiro.idUsuario;
+    dadosRequisicaoAtiva["status"] = StatusRequisicao.AGUARDANDO;
+
+    db.collection("requisicao_ativa")
+        .doc(passageiro.idUsuario)
+        .set(dadosRequisicaoAtiva);
   }
+
 
   _alterarBotaoPrincipal(String texto, Color cor, Function funcao) {
     setState(() {
@@ -195,7 +205,6 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   }
 
   _statusUberNaoChamado() {
-
     _exibirCaixaEnderecoDestino = true;
     _alterarBotaoPrincipal("Chamar Uber", Colors.lightBlue, () {
       _chamarUber();
@@ -213,13 +222,47 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
   }
 
+  _adicionarListenerRequisicaoAtiva() async {
+    User firebaseUser = await UsuarioFirebase.getUsuarioAtual();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    db.collection("requisicao_ativa")
+        .doc(firebaseUser.uid)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.data != null) {
+
+        Map<String, dynamic> dados = snapshot.data();
+        String status = dados["status"];
+        String idRequisicao = dados["id_requisicao"];
+
+        switch ( status ) {
+          case StatusRequisicao.AGUARDANDO :
+            _statusUberNaoChamado();
+            break;
+          case StatusRequisicao.A_CAMINHO :
+            break;
+          case StatusRequisicao.VIAGEM :
+            break;
+          case StatusRequisicao.FINALIZADA :
+            break;
+        }
+
+        } else {
+        _statusUberNaoChamado();
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _recuperaUltimaLocalizacaoConhecida();
     _adicionaListenerLocalizacao();
 
-    _statusUberNaoChamado();
+    //adicionar listener para requisicão ativa
+    _adicionarListenerRequisicaoAtiva();
+
   }
 
   @override
