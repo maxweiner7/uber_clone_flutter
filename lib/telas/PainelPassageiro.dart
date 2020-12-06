@@ -230,7 +230,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         .doc(firebaseUser.uid)
         .snapshots()
         .listen((snapshot) {
-      if (snapshot.data != null) {
+      if (snapshot.data() != null) {
 
         Map<String, dynamic> dados = snapshot.data();
         String status = dados["status"];
@@ -238,7 +238,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
         switch ( status ) {
           case StatusRequisicao.AGUARDANDO :
-            _statusUberNaoChamado();
+            statusAguardando();
             break;
           case StatusRequisicao.A_CAMINHO :
             break;
