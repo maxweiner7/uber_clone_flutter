@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'Destino.dart';
 import 'Usuario.dart';
 
@@ -29,6 +28,7 @@ class Requisicao {
     };
 
     Map<String, dynamic> dadosDestino= {
+      "cidade": this.destino.cidade,
       "rua" : this.destino.rua,
       "numero" : this.destino.numero,
       "cep" : this.destino.cep,
