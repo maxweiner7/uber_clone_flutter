@@ -56,18 +56,15 @@ class _PainelMotoristaState extends State<PainelMotorista> {
   Widget build(BuildContext context) {
     var mensagemCarregando = Center(
       child: Column(
-        children: [
-          Text("Carregando requisições"),
-          CircularProgressIndicator()
-        ],
+        children: [Text("Carregando requisições"), CircularProgressIndicator()],
       ),
     );
 
     var mensagemNaoTemDados = Center(
-        child: Text("Voce ainda não tem requisições", style: TextStyle(
-            fontSize: 18, fontWeight: FontWeight.bold
-        ),)
-    );
+        child: Text(
+      "Voce ainda não tem requisições",
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    ));
 
     return Scaffold(
       appBar: AppBar(
@@ -104,29 +101,29 @@ class _PainelMotoristaState extends State<PainelMotorista> {
                   return mensagemNaoTemDados;
                 } else {
                   return ListView.separated(
-                      itemBuilder: (context, indice){
+                      itemBuilder: (context, indice) {
+                        List<DocumentSnapshot> requisicoes =
+                            querySnapshot.docs.toList();
+                        DocumentSnapshot item = requisicoes[indice];
 
-                        List<DocumentSnapshot> requisicoes = querySnapshot.docs.toList();
-                        DocumentSnapshot item = requisicoes[ indice ];
-
-                        String idRequisicao = item ["id"];
-                        String nomePassageiro = item ["passageiro"] ["nome"];
-                        String rua = item["destino"] ["rua"];
-                        String numero = item["destino"] ["numero"];
-                        String cidade = item["destino"] ["cidade"];
+                        String idRequisicao = item["id"];
+                        String nomePassageiro = item["passageiro"]["nome"];
+                        String rua = item["destino"]["rua"];
+                        String numero = item["destino"]["numero"];
+                        String cidade = item["destino"]["cidade"];
 
                         return ListTile(
-                          title: Text( nomePassageiro ),
-                          subtitle: Text( "Destino: $rua, $numero \n$cidade" ),
-
-
+                          title: Text(nomePassageiro),
+                          subtitle: Text("Destino: $rua, $numero \n$cidade"),
+                          onTap: () {
+                            Navigator.pushNamed(context, "/corrida", arguments: idRequisicao);
+                          },
                         );
-
                       },
                       separatorBuilder: (context, indice) => Divider(
-                        height: 2,
-                          color: Colors.grey,
-                      ),
+                            height: 2,
+                            color: Colors.grey,
+                          ),
                       itemCount: querySnapshot.docs.length);
                 }
               }

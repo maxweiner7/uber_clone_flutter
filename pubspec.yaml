@@ -55,18 +55,20 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
+
     - images/fundo.png
     - images/logo.png
-    - images/motorista.png
-    - images/passageiro.png
-    - images/user.png
-    - images/2.0x/user.png
-    - images/3.0x/user.png
-    - images/4.0x/user.png
+
     - assets/user.png
     - assets/2.0x/user.png
     - assets/3.0x/user.png
     - assets/4.0x/user.png
+
+    - assets/motorista.png
+    - assets/2.0x/motorista.png
+    - assets/3.0x/motorista.png
+    - assets/4.0x/motorista.png
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

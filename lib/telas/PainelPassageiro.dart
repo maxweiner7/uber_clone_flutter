@@ -59,7 +59,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     var geolocator = Geolocator.getPositionStream(
         desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
         .listen((Position position) {
-      //_exibirMarcadorPassageiro( position );
+      _exibirMarcadorPassageiro( position );
       _posicaoCamera = CameraPosition(
           target: LatLng(position.latitude, position.longitude), zoom: 19);
       _movimentarCamera(_posicaoCamera);
@@ -77,8 +77,10 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         _posicaoCamera = CameraPosition(
             target: LatLng(position.latitude, position.longitude), zoom: 19);
         _movimentarCamera(_posicaoCamera);
+        _exibirMarcadorPassageiro( position );
       }
     });
+
   }
 
   _movimentarCamera(CameraPosition cameraPosition) async {
@@ -87,25 +89,25 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
 
-  // _exibirMarcadorPassageiro(Position local) async {
-  //   double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-  //   print("pixelRatio tamanho: " + pixelRatio.toString());
-  //
-  //   BitmapDescriptor.fromAssetImage(
-  //           ImageConfiguration(devicePixelRatio: pixelRatio),
-  //           "assets/user.png")
-  //       .then((BitmapDescriptor icone) {
-  //     Marker marcadorPassageiro = Marker(
-  //       markerId: MarkerId("marcador-passageiro"),
-  //       position: LatLng(local.latitude, local.longitude),
-  //       infoWindow: InfoWindow(title: "Meu local"),
-  //       icon: BitmapDescriptor.defaultMarkerWithHue(45),
-  //     );
-  //     setState(() {
-  //       _marcadores.add( marcadorPassageiro );
-  //     });
-  //   });
-  // }
+   _exibirMarcadorPassageiro(Position local) async {
+     double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+     print("pixelRatio tamanho: " + pixelRatio.toString());
+
+     BitmapDescriptor.fromAssetImage(
+             ImageConfiguration(devicePixelRatio: pixelRatio),
+             "assets/user.png")
+         .then((BitmapDescriptor icone) {
+       Marker marcadorPassageiro = Marker(
+         markerId: MarkerId("marcador-passageiro"),
+         position: LatLng(local.latitude, local.longitude),
+         infoWindow: InfoWindow(title: "Meu local"),
+         icon: icone,
+       );
+       setState(() {
+         _marcadores.add( marcadorPassageiro );
+       });
+     });
+   }
 
   _chamarUber() async {
     String endercoDestino = _controllerDestino.text;
@@ -300,7 +302,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
               onMapCreated: _onMapCreated,
               mapType: MapType.normal,
               initialCameraPosition: _posicaoCamera,
-              myLocationEnabled: true,
+              myLocationEnabled: false,
               myLocationButtonEnabled: false,
               markers: _marcadores,
               zoomControlsEnabled: false,
