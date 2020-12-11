@@ -27,12 +27,14 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   TextEditingController _controllerDestino =
   TextEditingController(text: "Av. joao naves de avila, 1331");
 
+
   //Controles para exibição na tela
   bool _exibirCaixaEnderecoDestino = true;
   String _textBotao = "Chamar Uber";
   Color _corBotao = Colors.lightBlue;
   Function _funcaoBotao;
   String _idRequisicao;
+  Position _localPassageiro;
 
   _deslogarUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -62,6 +64,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
       _exibirMarcadorPassageiro( position );
       _posicaoCamera = CameraPosition(
           target: LatLng(position.latitude, position.longitude), zoom: 19);
+      _localPassageiro = position;
       _movimentarCamera(_posicaoCamera);
     });
   }
@@ -77,6 +80,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         _posicaoCamera = CameraPosition(
             target: LatLng(position.latitude, position.longitude), zoom: 19);
         _movimentarCamera(_posicaoCamera);
+        _localPassageiro = position;
         _exibirMarcadorPassageiro( position );
       }
     });
@@ -120,7 +124,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         Destino destino = Destino();
 
         destino.latitude = latLog.latitude;
-        destino.longetude = latLog.longitude;
+        destino.longitude = latLog.longitude;
 
         List<Placemark> enderecos =
         await placemarkFromCoordinates(latLog.latitude, latLog.longitude);
@@ -177,6 +181,8 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     Requisicao requisicao = Requisicao();
 
     Usuario passageiro = await UsuarioFirebase.getDadosUsuarioLogado();
+    passageiro.latitude = _localPassageiro.latitude;
+    passageiro.longitude = _localPassageiro.longitude;
 
     requisicao.destino = destino;
     requisicao.passageiro = passageiro;

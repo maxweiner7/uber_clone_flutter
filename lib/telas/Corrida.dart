@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -151,44 +152,84 @@ class _CorridaState extends State<Corrida> {
 
   _statusACaminho() {
     _alterarBotaoPrincipal("A caminho do passageiro", Colors.lightBlue, null);
+    double latitudePassageiro = _dadosRequisicao["passageiro"]["latitude"];
+    double longetudePassageiro = _dadosRequisicao["passageiro"]["longitude"];
+
+    double latitudeMotorista = _dadosRequisicao["motorista"]["latitude"];
+    double longetudeMotorista = _dadosRequisicao["motorista"]["longitude"];
+
+    _exibirDoisMarcadores(
+      LatLng(latitudeMotorista, longetudeMotorista),
+      LatLng(latitudePassageiro, longetudePassageiro),
+    );
   }
 
-  _aceitarCorrida() async{
+  _exibirDoisMarcadores(LatLng localMotorista, LatLng localPassageiro) {
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    print("pixelRatio tamanho: " + pixelRatio.toString());
 
+    Set<Marker> _listaMarcadores = {};
+    BitmapDescriptor.fromAssetImage(
+            ImageConfiguration(devicePixelRatio: pixelRatio),
+            "assets/motorista.png")
+        .then((BitmapDescriptor icone) {
+      Marker marcador1 = Marker(
+        markerId: MarkerId("marcador-motorista"),
+        position: LatLng(localMotorista.latitude, localMotorista.longitude),
+        infoWindow: InfoWindow(title: "Local Motorista"),
+        icon: icone,
+      );
+      _listaMarcadores.add(marcador1);
+    });
+
+    BitmapDescriptor.fromAssetImage(
+            ImageConfiguration(devicePixelRatio: pixelRatio), "assets/user.png")
+        .then((BitmapDescriptor icone) {
+      Marker marcador2 = Marker(
+        markerId: MarkerId("marcador-passageiro"),
+        position: LatLng(localPassageiro.latitude, localPassageiro.longitude),
+        infoWindow: InfoWindow(title: "Local passageiro"),
+        icon: icone,
+      );
+      _listaMarcadores.add(marcador2);
+    });
+    setState(() {
+      _marcadores = _listaMarcadores;
+      _movimentarCamera(CameraPosition(
+          target: LatLng(localMotorista.latitude, localMotorista.longitude),
+          zoom: 18));
+    });
+  }
+
+  _aceitarCorrida() async {
     //Recuperar dados motorista
 
-    Usuario motorista   = await UsuarioFirebase.getDadosUsuarioLogado();
-    motorista.latitude  = _localMotorista.latitude;
+    Usuario motorista = await UsuarioFirebase.getDadosUsuarioLogado();
+    motorista.latitude = _localMotorista.latitude;
     motorista.longitude = _localMotorista.longitude;
-
 
     FirebaseFirestore db = FirebaseFirestore.instance;
     String idRequisicao = _dadosRequisicao["id"];
-    
-    db.collection("requisicoes")
-    .doc( idRequisicao ).update({
-      "motorista" : motorista.toMap(),
-      "status" : StatusRequisicao.A_CAMINHO,
+
+    db.collection("requisicoes").doc(idRequisicao).update({
+      "motorista": motorista.toMap(),
+      "status": StatusRequisicao.A_CAMINHO,
     }).then((_) {
       //atualiza requisicao ativa
       String idPassageiro = _dadosRequisicao["passageiro"]["idUsuario"];
-      db.collection("requisicao_ativa").doc( idPassageiro )
-      .update({
-        "status" : StatusRequisicao.A_CAMINHO,
+      db.collection("requisicao_ativa").doc(idPassageiro).update({
+        "status": StatusRequisicao.A_CAMINHO,
       });
 
       //salvar requisicao ativa par ao motorista
       String idMotorista = motorista.idUsuario;
-      db.collection("requisicao_ativa_motorista").doc( idMotorista )
-      .set({
+      db.collection("requisicao_ativa_motorista").doc(idMotorista).set({
         "id_requisicao": idRequisicao,
-        "id_usuario" : idMotorista,
+        "id_usuario": idMotorista,
         "status": StatusRequisicao.A_CAMINHO,
       });
     });
-
   }
-
 
   @override
   void initState() {

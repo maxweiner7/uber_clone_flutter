@@ -8,7 +8,7 @@ class Destino {
   String _bairro;
   String _cep;
   double _latitude;
-  double _longetude;
+  double _longitude;
   Map<dynamic, dynamic> _coordenadas ;
 
 
@@ -21,10 +21,11 @@ class Destino {
     _coordenadas = value;
   }
 
-  double get longetude => _longetude;
 
-  set longetude(double value) {
-    _longetude = value;
+  double get longitude => _longitude;
+
+  set longitude(double value) {
+    _longitude = value;
   }
 
   double get latitude => _latitude;
