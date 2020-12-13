@@ -52,7 +52,7 @@ class _CorridaState extends State<Corrida> {
       _exibirMarcadorPassageiro(position);
       _posicaoCamera = CameraPosition(
           target: LatLng(position.latitude, position.longitude), zoom: 19);
-      _movimentarCamera(_posicaoCamera);
+      //_movimentarCamera(_posicaoCamera);
 
       setState(() {
         _localMotorista = position;
@@ -70,7 +70,7 @@ class _CorridaState extends State<Corrida> {
 
         _posicaoCamera = CameraPosition(
             target: LatLng(position.latitude, position.longitude), zoom: 19);
-        _movimentarCamera(_posicaoCamera);
+        //_movimentarCamera(_posicaoCamera);
         _exibirMarcadorPassageiro(position);
         _localMotorista = position;
       }
@@ -147,25 +147,57 @@ class _CorridaState extends State<Corrida> {
     _alterarBotaoPrincipal("Aceitar corrida", Colors.grey, () {
       _aceitarCorrida();
     });
-    ;
   }
 
   _statusACaminho() {
     _alterarBotaoPrincipal("A caminho do passageiro", Colors.lightBlue, null);
     double latitudePassageiro = _dadosRequisicao["passageiro"]["latitude"];
-    double longetudePassageiro = _dadosRequisicao["passageiro"]["longitude"];
+    double longitudePassageiro = _dadosRequisicao["passageiro"]["longitude"];
 
     double latitudeMotorista = _dadosRequisicao["motorista"]["latitude"];
-    double longetudeMotorista = _dadosRequisicao["motorista"]["longitude"];
+    double longitudeMotorista = _dadosRequisicao["motorista"]["longitude"];
 
+    //Exibir dois marcadores
     _exibirDoisMarcadores(
-      LatLng(latitudeMotorista, longetudeMotorista),
-      LatLng(latitudePassageiro, longetudePassageiro),
+      LatLng(latitudeMotorista, longitudeMotorista),
+      LatLng(latitudePassageiro, longitudePassageiro),
     );
+
+    var nLat, nLon, sLat, sLon;
+
+    if( latitudeMotorista <= latitudePassageiro) {
+      sLat = latitudeMotorista;
+      nLat = latitudePassageiro;
+
+    }else{
+      sLat = latitudePassageiro;
+      nLat = latitudeMotorista;
+    }
+    if( longitudeMotorista <= longitudePassageiro) {
+      sLon = longitudeMotorista;
+      nLon = longitudePassageiro;
+
+    }else{
+      sLon = longitudePassageiro;
+      nLon = longitudeMotorista;
+    }
+
+
+    _movimentarCameraBounds(LatLngBounds(
+      northeast: LatLng(nLat, nLon), //nordeste
+      southwest: LatLng(sLat, sLon), //sudoeste
+    ));
+  }
+
+  _movimentarCameraBounds(LatLngBounds latLngBounds) async {
+    GoogleMapController googleMapController = await _controller.future;
+    googleMapController
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 100));
   }
 
   _exibirDoisMarcadores(LatLng localMotorista, LatLng localPassageiro) {
     double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
     print("pixelRatio tamanho: " + pixelRatio.toString());
 
     Set<Marker> _listaMarcadores = {};
@@ -195,9 +227,7 @@ class _CorridaState extends State<Corrida> {
     });
     setState(() {
       _marcadores = _listaMarcadores;
-      _movimentarCamera(CameraPosition(
-          target: LatLng(localMotorista.latitude, localMotorista.longitude),
-          zoom: 18));
+
     });
   }
 

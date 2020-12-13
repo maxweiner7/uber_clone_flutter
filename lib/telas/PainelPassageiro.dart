@@ -93,25 +93,25 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
   }
 
-   _exibirMarcadorPassageiro(Position local) async {
-     double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-     print("pixelRatio tamanho: " + pixelRatio.toString());
+  _exibirMarcadorPassageiro(Position local) async {
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    print("pixelRatio tamanho: " + pixelRatio.toString());
 
-     BitmapDescriptor.fromAssetImage(
-             ImageConfiguration(devicePixelRatio: pixelRatio),
-             "assets/user.png")
-         .then((BitmapDescriptor icone) {
-       Marker marcadorPassageiro = Marker(
-         markerId: MarkerId("marcador-passageiro"),
-         position: LatLng(local.latitude, local.longitude),
-         infoWindow: InfoWindow(title: "Meu local"),
-         icon: icone,
-       );
-       setState(() {
-         _marcadores.add( marcadorPassageiro );
-       });
-     });
-   }
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: pixelRatio),
+        "assets/user.png")
+        .then((BitmapDescriptor icone) {
+      Marker marcadorPassageiro = Marker(
+        markerId: MarkerId("marcador-passageiro"),
+        position: LatLng(local.latitude, local.longitude),
+        infoWindow: InfoWindow(title: "Meu local"),
+        icon: icone,
+      );
+      setState(() {
+        _marcadores.add( marcadorPassageiro );
+      });
+    });
+  }
 
   _chamarUber() async {
     String endercoDestino = _controllerDestino.text;
@@ -238,8 +238,8 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     User firebaseUser = await UsuarioFirebase.getUsuarioAtual();
     FirebaseFirestore db = FirebaseFirestore.instance;
     db.collection("requisicoes")
-    .doc(_idRequisicao)
-    .update({
+        .doc(_idRequisicao)
+        .update({
       "status" : StatusRequisicao.CANCELADA
     }).then((_) => db.collection("requisicao_ativa").doc( firebaseUser.uid ).delete());
 
@@ -272,7 +272,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
             break;
         }
 
-        } else {
+      } else {
         _statusUberNaoChamado();
       }
     });
