@@ -22,11 +22,10 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   Completer<GoogleMapController> _controller = Completer();
   List<String> itemsMenu = ["Configurações", "Deslogar"];
   CameraPosition _posicaoCamera =
-  CameraPosition(target: LatLng(38.70363978979417, -9.400388462337878));
+      CameraPosition(target: LatLng(38.70363978979417, -9.400388462337878));
   Set<Marker> _marcadores = {};
   TextEditingController _controllerDestino =
-  TextEditingController(text: "Av. joao naves de avila, 1331");
-
+      TextEditingController(text: "Av. joao naves de avila, 1331");
 
   //Controles para exibição na tela
   bool _exibirCaixaEnderecoDestino = true;
@@ -36,6 +35,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   String _idRequisicao;
   Position _localPassageiro;
   Map<String, dynamic> _dadosRequisicao;
+  StreamSubscription<DocumentSnapshot> _streamSubscriptionRequisicoes;
 
   _deslogarUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -60,25 +60,18 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
   _adicionaListenerLocalizacao() {
     var geolocator = Geolocator.getPositionStream(
-        desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
+            desiredAccuracy: LocationAccuracy.high, distanceFilter: 10)
         .listen((Position position) {
-
-          if ( _idRequisicao != null && _idRequisicao.isNotEmpty ) {
-
-            //Atualiza local do passageiro
-            UsuarioFirebase.atualizarDadosLocalizacao(
-                _idRequisicao,
-                position.latitude,
-                position.longitude
-            );
-
-          } else if ( position != null) {
-            setState(() {
-              _localPassageiro = position;
-            });
-          }
-
-
+      if (_idRequisicao != null && _idRequisicao.isNotEmpty) {
+        //Atualiza local do passageiro
+        UsuarioFirebase.atualizarDadosLocalizacao(
+            _idRequisicao, position.latitude, position.longitude);
+      } else {
+        setState(() {
+          _localPassageiro = position;
+        });
+        _statusUberNaoChamado();
+      }
     });
   }
 
@@ -89,7 +82,6 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     setState(() {
       if (position != null) {
         // _exibirMarcadorPassageiro( position );
-
 
       }
     });
@@ -102,14 +94,11 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   }
 
   _exibirMarcadorPassageiro(Position local) async {
-    double pixelRatio = MediaQuery
-        .of(context)
-        .devicePixelRatio;
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio;
     print("pixelRatio tamanho: " + pixelRatio.toString());
 
     BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: pixelRatio),
-        "assets/user.png")
+            ImageConfiguration(devicePixelRatio: pixelRatio), "assets/user.png")
         .then((BitmapDescriptor icone) {
       Marker marcadorPassageiro = Marker(
         markerId: MarkerId("marcador-passageiro"),
@@ -137,7 +126,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         destino.longitude = latLog.longitude;
 
         List<Placemark> enderecos =
-        await placemarkFromCoordinates(latLog.latitude, latLog.longitude);
+            await placemarkFromCoordinates(latLog.latitude, latLog.longitude);
         Placemark endereco = enderecos[0];
 
         destino.cidade = endereco.subAdministrativeArea;
@@ -200,8 +189,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
     FirebaseFirestore db = FirebaseFirestore.instance;
 
-    db.collection("requisicoes").doc(requisicao.id)
-        .set(requisicao.toMap());
+    db.collection("requisicoes").doc(requisicao.id).set(requisicao.toMap());
 
     //salvar requisição ativa
     Map<String, dynamic> dadosRequisicaoAtiva = {};
@@ -209,15 +197,17 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     dadosRequisicaoAtiva["id_usuario"] = passageiro.idUsuario;
     dadosRequisicaoAtiva["status"] = StatusRequisicao.AGUARDANDO;
 
-    db.collection("requisicao_ativa")
+    db
+        .collection("requisicao_ativa")
         .doc(passageiro.idUsuario)
         .set(dadosRequisicaoAtiva);
 
-    //chama método para alterar interface para o status aguardando
-    statusAguardando();
+    //adicionar listener requisicao
+    if (_streamSubscriptionRequisicoes == null) {
+      _adicionarListenerRequisicao(requisicao.id);
+    }
 
   }
-
 
   _alterarBotaoPrincipal(String texto, Color cor, Function funcao) {
     setState(() {
@@ -233,13 +223,16 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
       _chamarUber();
     });
 
-    Position position = Position(latitude: _localPassageiro.latitude,
-        longitude: _localPassageiro.longitude);
-    _exibirMarcadorPassageiro(position);
+    if (_localPassageiro != null) {
+      Position position = Position(
+          latitude: _localPassageiro.latitude,
+          longitude: _localPassageiro.longitude);
+      _exibirMarcadorPassageiro(position);
 
-    CameraPosition cameraPosition = CameraPosition(
-        target: LatLng(position.latitude, position.longitude), zoom: 19);
-    _movimentarCamera(cameraPosition);
+      CameraPosition cameraPosition = CameraPosition(
+          target: LatLng(position.latitude, position.longitude), zoom: 19);
+      _movimentarCamera(cameraPosition);
+    }
   }
 
   statusAguardando() {
@@ -250,9 +243,8 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
     double passageiroLat = _dadosRequisicao["passageiro"]["latitude"];
     double passageiroLon = _dadosRequisicao["passageiro"]["longitude"];
-    Position position = Position(
-        latitude: passageiroLat,
-        longitude: passageiroLon);
+    Position position =
+        Position(latitude: passageiroLat, longitude: passageiroLon);
 
     _exibirMarcadorPassageiro(position);
 
@@ -264,17 +256,92 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
   _statusACaminho() {
     _exibirCaixaEnderecoDestino = false;
     _alterarBotaoPrincipal("Motorista a Caminho", Colors.grey[400], () {});
+
+    double latitudePassageiro = _dadosRequisicao["passageiro"]["latitude"];
+    double longitudePassageiro = _dadosRequisicao["passageiro"]["longitude"];
+
+    double latitudeMotorista = _dadosRequisicao["motorista"]["latitude"];
+    double longitudeMotorista = _dadosRequisicao["motorista"]["longitude"];
+
+    //Exibir dois marcadores
+    _exibirDoisMarcadores(
+      LatLng(latitudeMotorista, longitudeMotorista),
+      LatLng(latitudePassageiro, longitudePassageiro),
+    );
+
+    var nLat, nLon, sLat, sLon;
+
+    if (latitudeMotorista <= latitudePassageiro) {
+      sLat = latitudeMotorista;
+      nLat = latitudePassageiro;
+    } else {
+      sLat = latitudePassageiro;
+      nLat = latitudeMotorista;
+    }
+    if (longitudeMotorista <= longitudePassageiro) {
+      sLon = longitudeMotorista;
+      nLon = longitudePassageiro;
+    } else {
+      sLon = longitudePassageiro;
+      nLon = longitudeMotorista;
+    }
+
+    _movimentarCameraBounds(LatLngBounds(
+      northeast: LatLng(nLat, nLon), //nordeste
+      southwest: LatLng(sLat, sLon), //sudoeste
+    ));
+  }
+
+  _movimentarCameraBounds(LatLngBounds latLngBounds) async {
+    GoogleMapController googleMapController = await _controller.future;
+    googleMapController
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 100));
+  }
+
+
+  _exibirDoisMarcadores(LatLng localMotorista, LatLng localPassageiro) {
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+    print("pixelRatio tamanho: " + pixelRatio.toString());
+
+    Set<Marker> _listaMarcadores = {};
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: pixelRatio),
+        "assets/motorista.png")
+        .then((BitmapDescriptor icone) {
+      Marker marcador1 = Marker(
+        markerId: MarkerId("marcador-motorista"),
+        position: LatLng(localMotorista.latitude, localMotorista.longitude),
+        infoWindow: InfoWindow(title: "Local Motorista"),
+        icon: icone,
+      );
+      _listaMarcadores.add(marcador1);
+    });
+
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: pixelRatio), "assets/user.png")
+        .then((BitmapDescriptor icone) {
+      Marker marcador2 = Marker(
+        markerId: MarkerId("marcador-passageiro"),
+        position: LatLng(localPassageiro.latitude, localPassageiro.longitude),
+        infoWindow: InfoWindow(title: "Local passageiro"),
+        icon: icone,
+      );
+      _listaMarcadores.add(marcador2);
+    });
+    setState(() {
+      _marcadores = _listaMarcadores;
+    });
   }
 
   _cancelarUber() async {
     User firebaseUser = await UsuarioFirebase.getUsuarioAtual();
     FirebaseFirestore db = FirebaseFirestore.instance;
-    db.collection("requisicoes")
+    db
+        .collection("requisicoes")
         .doc(_idRequisicao)
-        .update({
-      "status": StatusRequisicao.CANCELADA
-    }).then((_) =>
-        db.collection("requisicao_ativa").doc(firebaseUser.uid).delete());
+        .update({"status": StatusRequisicao.CANCELADA}).then((_) =>
+            db.collection("requisicao_ativa").doc(firebaseUser.uid).delete());
   }
 
   _recuperarRequisicaoAtiva() async {
@@ -282,49 +349,47 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
     FirebaseFirestore db = FirebaseFirestore.instance;
 
-    DocumentSnapshot documentSnapshot = await db.collection("requisicao_ativa")
-        .doc(firebaseUser.uid)
-        .get();
+    DocumentSnapshot documentSnapshot =
+        await db.collection("requisicao_ativa").doc(firebaseUser.uid).get();
 
     if (documentSnapshot.data() != null) {
       Map<String, dynamic> dados = documentSnapshot.data();
       _idRequisicao = dados["id_requisicao"];
-      _adicionarListenerRequisicao( _idRequisicao );
-    }else {
+      _adicionarListenerRequisicao(_idRequisicao);
+    } else {
       _statusUberNaoChamado();
     }
   }
 
   _adicionarListenerRequisicao(String idRequisicao) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
-    await db
+   _streamSubscriptionRequisicoes =  await db
         .collection("requisicoes")
-        .doc(idRequisicao).snapshots().listen((snapshot) {
-
+        .doc(idRequisicao)
+        .snapshots()
+        .listen((snapshot) {
       if (snapshot.data() != null) {
-
         Map<String, dynamic> dados = snapshot.data();
         _dadosRequisicao = dados;
         String status = dados["status"];
         _idRequisicao = dados["id_requisicao"];
 
         switch (status) {
-          case StatusRequisicao.AGUARDANDO :
+          case StatusRequisicao.AGUARDANDO:
             statusAguardando();
             break;
-          case StatusRequisicao.A_CAMINHO :
+          case StatusRequisicao.A_CAMINHO:
             _statusACaminho();
             break;
-          case StatusRequisicao.VIAGEM :
+          case StatusRequisicao.VIAGEM:
             break;
-          case StatusRequisicao.FINALIZADA :
+          case StatusRequisicao.FINALIZADA:
             break;
         }
       } else {
         _statusUberNaoChamado();
       }
     });
-
   }
 
   @override
@@ -337,8 +402,6 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     _adicionaListenerLocalizacao();
 
     //adicionar listener para requisicão ativa
-
-
   }
 
   @override
@@ -462,5 +525,11 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _streamSubscriptionRequisicoes.cancel();
   }
 }
