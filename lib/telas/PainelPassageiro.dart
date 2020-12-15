@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:geocoding/geocoding.dart';
 import 'package:uber/model/Destino.dart';
+import 'package:uber/model/Marcador.dart';
 import 'package:uber/model/Requisicao.dart';
 import 'package:uber/model/Usuario.dart';
 import 'package:uber/util/StatusRequisicao.dart';
@@ -206,7 +207,6 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     if (_streamSubscriptionRequisicoes == null) {
       _adicionarListenerRequisicao(requisicao.id);
     }
-
   }
 
   _alterarBotaoPrincipal(String texto, Color cor, Function funcao) {
@@ -257,33 +257,79 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
     _exibirCaixaEnderecoDestino = false;
     _alterarBotaoPrincipal("Motorista a Caminho", Colors.grey[400], () {});
 
-    double latitudePassageiro = _dadosRequisicao["passageiro"]["latitude"];
-    double longitudePassageiro = _dadosRequisicao["passageiro"]["longitude"];
+    double latitudeDestino = _dadosRequisicao["passageiro"]["latitude"];
+    double longitudeDestino = _dadosRequisicao["passageiro"]["longitude"];
 
-    double latitudeMotorista = _dadosRequisicao["motorista"]["latitude"];
-    double longitudeMotorista = _dadosRequisicao["motorista"]["longitude"];
+    double latitudeOrigem = _dadosRequisicao["motorista"]["latitude"];
+    double longitudeOrigem = _dadosRequisicao["motorista"]["longitude"];
 
-    //Exibir dois marcadores
+    Marcador marcadorOrigem = Marcador(
+        LatLng(latitudeOrigem, longitudeOrigem),
+        "assets/motorista.png",
+        "Local motorista"
+    );
+
+    Marcador marcadorDestino = Marcador(
+        LatLng(latitudeDestino, longitudeDestino),
+        "assets/user.png",
+        "Local destino"
+    );
+    _exibirCentralizarDoisMarcadores(marcadorOrigem, marcadorDestino);
+  }
+
+  _statusEmViagem() {
+    _exibirCaixaEnderecoDestino = false;
+    _alterarBotaoPrincipal("Em viagem", Colors.grey, null);
+
+    double latitudeDestino = _dadosRequisicao["destino"]["latitude"];
+    double longitudeDestino = _dadosRequisicao["destino"]["longitude"];
+
+    double latitudeOrigem = _dadosRequisicao["motorista"]["latitude"];
+    double longitudeOrigem = _dadosRequisicao["motorista"]["longitude"];
+
+    Marcador marcadorOrigem = Marcador(
+        LatLng(latitudeOrigem, longitudeOrigem),
+        "assets/motorista.png",
+        "Local motorista"
+    );
+
+    Marcador marcadorDestino = Marcador(
+        LatLng(latitudeDestino, longitudeDestino),
+        "assets/destino.png",
+        "Local destino"
+    );
+    _exibirCentralizarDoisMarcadores(marcadorOrigem, marcadorDestino);
+
+  }
+
+  _exibirCentralizarDoisMarcadores(Marcador marcadorOrigem, Marcador marcadorDestino ) {
+
+    double latitudeOrigem = marcadorOrigem.local.latitude;
+    double longitudeOrigem = marcadorOrigem.local.longitude;
+
+    double latitudeDestino = marcadorDestino.local.latitude;
+    double longitudeDestino = marcadorDestino.local.longitude;
+
     _exibirDoisMarcadores(
-      LatLng(latitudeMotorista, longitudeMotorista),
-      LatLng(latitudePassageiro, longitudePassageiro),
+      marcadorOrigem,
+      marcadorDestino,
     );
 
     var nLat, nLon, sLat, sLon;
 
-    if (latitudeMotorista <= latitudePassageiro) {
-      sLat = latitudeMotorista;
-      nLat = latitudePassageiro;
+    if (latitudeOrigem <= latitudeDestino) {
+      sLat = latitudeOrigem;
+      nLat = latitudeDestino;
     } else {
-      sLat = latitudePassageiro;
-      nLat = latitudeMotorista;
+      sLat = latitudeDestino;
+      nLat = latitudeOrigem;
     }
-    if (longitudeMotorista <= longitudePassageiro) {
-      sLon = longitudeMotorista;
-      nLon = longitudePassageiro;
+    if (longitudeOrigem <= longitudeDestino) {
+      sLon = longitudeOrigem;
+      nLon = longitudeDestino;
     } else {
-      sLon = longitudePassageiro;
-      nLon = longitudeMotorista;
+      sLon = longitudeDestino;
+      nLon = longitudeOrigem;
     }
 
     _movimentarCameraBounds(LatLngBounds(
@@ -298,36 +344,38 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
         .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 100));
   }
 
-
-  _exibirDoisMarcadores(LatLng localMotorista, LatLng localPassageiro) {
+  _exibirDoisMarcadores( Marcador marcadorOrigem, Marcador marcadorDestino ) {
     double pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     print("pixelRatio tamanho: " + pixelRatio.toString());
 
+    LatLng latLngOrigem = marcadorOrigem.local;
+    LatLng latLngDestino = marcadorDestino.local;
+
     Set<Marker> _listaMarcadores = {};
     BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: pixelRatio),
-        "assets/motorista.png")
+            ImageConfiguration(devicePixelRatio: pixelRatio),
+            marcadorOrigem.caminhoImagem)
         .then((BitmapDescriptor icone) {
-      Marker marcador1 = Marker(
-        markerId: MarkerId("marcador-motorista"),
-        position: LatLng(localMotorista.latitude, localMotorista.longitude),
-        infoWindow: InfoWindow(title: "Local Motorista"),
+      Marker mOrigem = Marker(
+        markerId: MarkerId(marcadorOrigem.caminhoImagem),
+        position: LatLng(latLngOrigem.latitude, latLngOrigem.longitude),
+        infoWindow: InfoWindow(title: marcadorOrigem.titulo),
         icon: icone,
       );
-      _listaMarcadores.add(marcador1);
+      _listaMarcadores.add(mOrigem);
     });
 
     BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(devicePixelRatio: pixelRatio), "assets/user.png")
+            ImageConfiguration(devicePixelRatio: pixelRatio), marcadorDestino.caminhoImagem)
         .then((BitmapDescriptor icone) {
-      Marker marcador2 = Marker(
-        markerId: MarkerId("marcador-passageiro"),
-        position: LatLng(localPassageiro.latitude, localPassageiro.longitude),
-        infoWindow: InfoWindow(title: "Local passageiro"),
+      Marker mDestino = Marker(
+        markerId: MarkerId(marcadorDestino.caminhoImagem),
+        position: LatLng(latLngDestino.latitude, latLngDestino.longitude),
+        infoWindow: InfoWindow(title: marcadorDestino.titulo),
         icon: icone,
       );
-      _listaMarcadores.add(marcador2);
+      _listaMarcadores.add( mDestino );
     });
     setState(() {
       _marcadores = _listaMarcadores;
@@ -363,7 +411,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
 
   _adicionarListenerRequisicao(String idRequisicao) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
-   _streamSubscriptionRequisicoes =  await db
+    _streamSubscriptionRequisicoes = await db
         .collection("requisicoes")
         .doc(idRequisicao)
         .snapshots()
@@ -382,6 +430,7 @@ class _PainelPassageiroState extends State<PainelPassageiro> {
             _statusACaminho();
             break;
           case StatusRequisicao.VIAGEM:
+            _statusEmViagem();
             break;
           case StatusRequisicao.FINALIZADA:
             break;

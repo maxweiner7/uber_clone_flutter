@@ -69,6 +69,13 @@ flutter:
     - assets/3.0x/motorista.png
     - assets/4.0x/motorista.png
 
+    - assets/destino.png
+    - assets/2.0x/destino.png
+    - assets/3.0x/destino.png
+    - assets/4.0x/destino.png
+
+
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
