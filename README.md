@@ -1,6 +1,7 @@
 # App Uber Clone
 
 ![4qrqtu](https://user-images.githubusercontent.com/35000699/102536010-ebcda500-40a0-11eb-93e5-4c42498d82a6.gif)
+
 Projeto desenvolvido durante o curso "Desenvolvimento Android e IOS com Flutter 2020" no site Udemy.
 ## Getting Started
 Neste módulo do curso foi desenvolvido:
