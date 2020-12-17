@@ -12,21 +12,14 @@ Neste módulo do curso foi desenvolvido:
 * Foratação de numeros com "intl"
 * Responsividade de marcadores no mapa
 
-Dependencies:
- cupertino_icons: ^1.0.0
- 
- firebase_core: ^0.5.2
- 
- firebase_auth: ^0.18.3
- 
- cloud_firestore: ^0.14.3
- 
- google_maps_flutter: ^1.0.6
- 
- geolocator: ^6.1.8+1
- 
- geocoding: ^1.0.5
- 
- intl: ^0.16.1
+Dependencies:<br> 
+ cupertino_icons: ^1.0.0<br> 
+ firebase_core: ^0.5.2<br> 
+ firebase_auth: ^0.18.3<br> 
+ cloud_firestore: ^0.14.3<br> 
+ google_maps_flutter: ^1.0.6<br> 
+ geolocator: ^6.1.8+1<br> 
+ geocoding: ^1.0.5<br> 
+ intl: ^0.16.1<br> 
 
 
