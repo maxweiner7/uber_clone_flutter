@@ -14,12 +14,19 @@ Neste módulo do curso foi desenvolvido:
 
 Dependencies:
  cupertino_icons: ^1.0.0
+ 
  firebase_core: ^0.5.2
+ 
  firebase_auth: ^0.18.3
+ 
  cloud_firestore: ^0.14.3
+ 
  google_maps_flutter: ^1.0.6
+ 
  geolocator: ^6.1.8+1
+ 
  geocoding: ^1.0.5
+ 
  intl: ^0.16.1
 
 
